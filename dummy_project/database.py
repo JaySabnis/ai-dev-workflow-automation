@@ -1,8 +1,11 @@
-def get_user_from_db(user_id):
-    users = {
-        1: {"name": "Jay", "age": 25},
-        2: {"name": "Alice", "age": 30},
-        3: {"name": "Bob", "age": 35}
-    }
+_USERS: dict[int, dict] = {
+    1: {"name": "Jay", "age": 25},
+    2: {"name": "Alice", "age": 30},
+    3: {"name": "Bob", "age": 35},
+}
 
-    return users[user_id]  # KeyError risk
+
+def get_user_from_db(user_id: int) -> dict:
+    if user_id not in _USERS:
+        raise KeyError(f"User {user_id} not found")
+    return _USERS[user_id]
