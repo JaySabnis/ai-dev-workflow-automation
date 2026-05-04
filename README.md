@@ -1,10 +1,10 @@
-# 🚀 AI Dev Workflow Automation
+# AI Dev Workflow Automation
 
 An AI-driven system that automates codebase analysis, refactoring, and development workflows using structured prompts and Claude Code (VS Code agent).
 
 ---
 
-## 🧠 Overview
+## Overview
 
 This project demonstrates how AI can be integrated directly into developer workflows to **analyze, modify, and improve a codebase autonomously**.
 
@@ -12,7 +12,7 @@ Instead of acting as a simple assistant, the system follows a **structured workf
 
 ---
 
-## 🎯 Objective
+## Objective
 
 To design a **workflow-driven AI system** that:
 
@@ -23,29 +23,27 @@ To design a **workflow-driven AI system** that:
 
 ---
 
-## ⚙️ WAT Framework (Workflow–Action–Test)
+## WAT Framework (Workflow–Action–Test)
 
 This project is built around the **WAT Framework**, a simple but effective approach to designing AI-driven engineering systems.
 
-### 🔹 Workflow
+### Workflow
 
 * Define structured steps for the AI to follow
 * Includes planning, execution strategy, and constraints
 * Implemented using Markdown-based workflow files
 
-### 🔹 Action
+### Action
 
 * AI performs actual operations:
-
   * code refactoring
   * bug fixing
   * feature additions
 * Works file-by-file to maintain control and consistency
 
-### 🔹 Test
+### Test
 
 * Validate results after execution:
-
   * syntax checks
   * consistency verification
   * basic correctness
@@ -54,115 +52,127 @@ This project is built around the **WAT Framework**, a simple but effective appro
 
 ---
 
-## ⚙️ System Workflow
+## System Workflow
 
 ### 1. Codebase Analysis
-
 * Reads and understands all project files
 * Identifies bugs, inefficiencies, and structural issues
 
 ### 2. AI Planning
-
 * Generates a structured plan:
-
   * Issues list
   * Files to modify
   * Step-by-step execution strategy
 
 ### 3. Automated Execution
-
 * Refactors code file-by-file
 * Fixes bugs and improves readability
 * Adds error handling and best practices
 
 ### 4. Validation (Test Phase)
-
 * Ensures updated code is syntactically correct
 * Verifies consistency across files
 
 ### 5. Git Integration & PR Automation
-
-* Creates a new branch (`ai-refactor`)
+* Creates a new branch
 * Commits AI-generated changes
 * Pushes updates to remote
-* Generates a Pull Request with:
-
-  * Files modified
-  * Issues fixed
-  * Summary of improvements
+* Generates a Pull Request with files modified, issues fixed, and summary of improvements
 
 ---
 
-## 🧱 Project Structure
+## Project Structure
 
-```id="struct4"
+```
 ai-dev-workflow-automation/
-├── dummy_project/        # Sample codebase (with intentional issues)
-├── .ai/                  # AI workflow system
-│   ├── workflows/
-│   │   ├── full-refactor.md
-│   │   ├── bug-fix.md
-│   │   └── feature-add.md
-│   ├── rules.md
-│   └── context.md
+├── dummy_project/               # Target Python application
+│   ├── app.py                   # Entry point — session lifecycle + CLI
+│   ├── service.py               # Business logic — orchestrates DB and utils
+│   ├── database.py              # DB query functions (SQLAlchemy session-based)
+│   ├── models.py                # SQLAlchemy ORM models (User, UserScore)
+│   ├── db.py                    # Engine, SessionLocal, Base (reads from .env)
+│   ├── utils.py                 # Pure utility functions
+│   ├── seed.py                  # Dev-only script to populate test data
+│   ├── requirements.txt         # Python dependencies
+│   ├── alembic.ini              # Alembic configuration
+│   ├── .env                     # DB credentials (not committed)
+│   └── migrations/              # Alembic migration scripts
+│       └── versions/
+│           └── 4d41c850d44c_init_schema.py
+├── .claude/                     # Claude Code project config
+│   ├── specs/
+│   │   └── 01-database-setup.md # Feature specification
+│   └── plans/
+│       └── 01-database-setup.md # Implementation plan
+├── CLAUDE.md                    # Claude Code guidance
 ├── README.md
+├── .gitignore
+├── run.sh                       # Convenience launcher (activates venv)
+└── venv/                        # Python virtual environment (not committed)
 ```
 
 ---
 
-## 🤖 AI Workflow Design
+## Getting Started
 
-The system uses **Markdown-based workflow definitions** to guide Claude:
+### Prerequisites
 
-* `workflows/` → defines execution steps
-* `rules.md` → enforces constraints and best practices
-* `context.md` → provides project understanding
+* Python 3.13+
+* MySQL 8+
 
-This enables **structured, repeatable, and controlled AI behavior**.
+### Setup
 
----
+```bash
+# 1. Activate the virtual environment
+source venv/bin/activate
 
-## 🚀 How It Works in Practice
+# 2. Install dependencies
+pip install -r dummy_project/requirements.txt
 
-Using Claude Code in VS Code:
+# 3. Configure database credentials
+#    Edit dummy_project/.env with your MySQL details:
+#    DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
 
-1. Load the repository
-2. Provide workflow instruction
-3. Claude:
+# 4. Create the database
+mysql -u root -p -e "CREATE DATABASE user_db;"
 
-   * analyzes the codebase
-   * generates a plan
-   * modifies files step-by-step
-   * validates changes
-   * assists in Git operations
+# 5. Apply migrations
+cd dummy_project && alembic upgrade head
 
----
+# 6. Seed test data
+python seed.py
+```
 
-## 💡 Example Usage
+### Run
 
-```text id="usage2"
-Follow .ai/workflows/full-refactor.md
+```bash
+# From project root
+./run.sh
 
-Use rules from .ai/rules.md
-Use context from .ai/context.md
-
-Start with analysis and proceed step-by-step.
+# Or manually
+source venv/bin/activate
+cd dummy_project && python app.py
 ```
 
 ---
 
-## 🔧 Tech Stack
+## Tech Stack
 
-* Python
+* Python 3.13
+* SQLAlchemy (ORM)
+* Alembic (migrations)
+* MySQL 8+ via pymysql
 * Claude Code (VS Code AI agent)
 * Structured prompt engineering
 * Git (branching, commits, PR workflow)
 
 ---
 
-## 🚀 Key Highlights
+## Key Highlights
 
 * WAT Framework (Workflow–Action–Test) implementation
+* MySQL-backed database with Alembic-managed schema migrations
+* SQLAlchemy ORM with session-per-request pattern
 * Workflow-driven AI system (not just prompts)
 * Multi-step reasoning: planning → execution → validation
 * Codebase-level automation (not single-file fixes)
@@ -170,20 +180,14 @@ Start with analysis and proceed step-by-step.
 
 ---
 
-## 🧠 Concept
+## Concept
 
-> AI should not just assist developers—it should execute structured workflows within real systems.
+> AI should not just assist developers — it should execute structured workflows within real systems.
 
-This project demonstrates how combining:
-
-* structured workflows
-* LLM reasoning
-* system-level actions
-
-can transform AI into an **execution engine for software development**.
+This project demonstrates how combining structured workflows, LLM reasoning, and system-level actions can transform AI into an **execution engine for software development**.
 
 ---
 
-## 📌 Author
+## Author
 
 Jay Sabnis

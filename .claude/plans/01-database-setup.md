@@ -25,8 +25,8 @@ The `dummy_project/` currently uses an in-memory Python dict as its database lay
 ### Step 1 — Add `requirements.txt`
 **File:** `dummy_project/requirements.txt` (new)
 
-### Step 2 — Add `.env.example`
-**File:** `dummy_project/.env.example` (new)
+### Step 2 — Add `.env`
+**File:** `dummy_project/.env` (not committed)
 
 ### Step 3 — Create `dummy_project/models.py`
 Two SQLAlchemy ORM models: `User` and `UserScore` with FK + CASCADE.
@@ -62,7 +62,7 @@ Manage session lifecycle (open/close per request).
 | File | Action |
 |------|--------|
 | `dummy_project/requirements.txt` | Create |
-| `dummy_project/.env` | Create |
+| `dummy_project/.env` | Create (not committed) |
 | `dummy_project/models.py` | Create |
 | `dummy_project/db.py` | Create |
 | `dummy_project/database.py` | Full rewrite |
@@ -86,7 +86,7 @@ Manage session lifecycle (open/close per request).
 ## Verification
 
 1. `pip install -r requirements.txt`
-2. Copy `.env.example` → `.env`
+2. Fill in credentials in `dummy_project/.env`
 3. `CREATE DATABASE user_db;`
 4. `alembic upgrade head`
 5. `python seed.py`
