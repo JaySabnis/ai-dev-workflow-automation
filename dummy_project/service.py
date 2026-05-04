@@ -1,13 +1,15 @@
 import logging
 from typing import Optional
 
-from database import get_user_from_db
+from sqlalchemy.orm import Session
+
+from database import get_user_from_db, get_scores_for_user
 from utils import calculate_average
 
 logger = logging.getLogger(__name__)
 
 
-def get_user_data(user_id: str) -> dict:
+def get_user_data(user_id: str, session: Session) -> dict:
     try:
         uid = int(user_id)
     except (ValueError, TypeError) as e:
@@ -15,7 +17,7 @@ def get_user_data(user_id: str) -> dict:
         raise ValueError(f"user_id must be a valid integer, got: {user_id!r}") from e
 
     try:
-        user = get_user_from_db(uid)
+        user = get_user_from_db(session, uid)
     except KeyError:
         logger.error("User %d not found in database", uid)
         raise ValueError(f"No user found with id: {uid}")
@@ -23,7 +25,7 @@ def get_user_data(user_id: str) -> dict:
         logger.exception("Unexpected error fetching user %d from database", uid)
         raise
 
-    scores: list[int] = [10, 20, 30, 40]
+    scores: list[int] = get_scores_for_user(session, uid)
     avg: Optional[float]
     try:
         avg = calculate_average(scores)

@@ -1,11 +1,14 @@
-_USERS: dict[int, dict] = {
-    1: {"name": "Jay", "age": 25},
-    2: {"name": "Alice", "age": 30},
-    3: {"name": "Bob", "age": 35},
-}
+from sqlalchemy.orm import Session
+from models import User, UserScore
 
 
-def get_user_from_db(user_id: int) -> dict:
-    if user_id not in _USERS:
+def get_user_from_db(session: Session, user_id: int) -> dict:
+    user = session.get(User, user_id)
+    if user is None:
         raise KeyError(f"User {user_id} not found")
-    return _USERS[user_id]
+    return {"name": user.name, "age": user.age}
+
+
+def get_scores_for_user(session: Session, user_id: int) -> list[int]:
+    rows = session.query(UserScore.score).filter(UserScore.user_id == user_id).all()
+    return [row.score for row in rows]
