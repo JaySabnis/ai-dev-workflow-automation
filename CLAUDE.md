@@ -27,31 +27,64 @@ cd dummy_project && alembic upgrade head
 # 6. Seed test data
 python seed.py
 
-# 7. Run the app (prompts for a user ID)
+# 7a. Run the CLI app (prompts for a user ID)
 python app.py
 
 # Or use the convenience launcher from project root:
 ./run.sh
+
+# 7b. Run the REST API server
+uvicorn app.main:app --reload --port 8000
+# Swagger UI: http://localhost:8000/docs
 ```
 
 ## Architecture
 
-The `dummy_project/` is a layered Python app with a MySQL backend:
+The `dummy_project/` is a layered Python app with a MySQL backend, exposed via both a CLI and a REST API.
 
-- `app.py` — Entry point. Opens a DB session, calls `service.get_user_data()`, prints formatted result, closes session.
-- `service.py` — Orchestration layer. Validates user ID, fetches user and scores from DB, computes average score, returns merged dict. Uses structured logging.
-- `database.py` — DB query functions using SQLAlchemy sessions. `get_user_from_db(session, int)` raises `KeyError` on miss; `get_scores_for_user(session, int)` returns a list of ints.
+### Core layers
+
+- `app.py` — CLI entry point. Opens a DB session, calls `service.get_user_data()`, prints formatted result via `utils.format_data()`, closes session.
+- `service.py` — Business logic layer. Functions: `get_user_data`, `create_user`, `add_score_for_user`, `update_score_for_user`. No HTTP concepts here.
+- `database.py` — DB query functions using SQLAlchemy sessions. Raises `KeyError` on missing records. Functions: `get_user_from_db`, `get_scores_for_user`, `create_user_in_db`, `add_score_to_db`, `update_score_in_db`.
 - `models.py` — SQLAlchemy ORM models: `User` (`users` table) and `UserScore` (`user_scores` table with FK cascade).
 - `db.py` — Engine, `SessionLocal`, and `Base` setup. Reads credentials from `dummy_project/.env` via `python-dotenv`.
-- `utils.py` — Two pure functions: `format_data(dict) -> str` and `calculate_average(list[int]) -> int` (raises `ValueError` on empty list).
+- `utils.py` — Two pure functions: `format_data(dict) -> str` (CLI only) and `calculate_average(list[int]) -> float | None` (returns `None` on empty).
 - `seed.py` — Dev-only script to populate test data into MySQL.
 - `migrations/` — Alembic migration scripts managed via `alembic.ini`.
 
-Data flow: `app.py` → `service.py` → `database.py` + `utils.py`, with `db.py` and `models.py` as shared infrastructure.
+### FastAPI layer (`app/`)
+
+- `app/main.py` — FastAPI app init; registers the users router.
+- `app/dependencies.py` — `get_db()` dependency: creates a `SessionLocal`, yields it, closes after response.
+- `app/schemas/user.py` — Pydantic models: `CreateUserRequest`, `AddScoreRequest`, `UpdateScoreRequest`, `UserResponse`, `ScoreResponse`, `CreatedUserResponse`.
+- `app/routes/users.py` — The 4 endpoint handlers. Handles routing, session injection, and HTTP error mapping only — no business logic.
+
+### Request flow (API)
+
+```
+HTTP Request
+  → app/main.py          (FastAPI app)
+  → app/routes/users.py  (routing + session injection + error → HTTPException)
+  → service.py           (business logic + validation)
+  → database.py          (DB queries)
+  → MySQL
+  → JSON Response
+```
+
+### Data flow (CLI)
+
+```
+app.py → service.py → database.py + utils.py
+```
+
+Shared infrastructure: `db.py` (engine/session) and `models.py` (ORM models).
 
 ## Tech stack
 
 - Python 3.13
+- FastAPI + Uvicorn (REST API server)
+- Pydantic v2 (request/response validation)
 - SQLAlchemy (ORM, session-per-request pattern)
 - Alembic (schema migrations)
 - MySQL 8+ via pymysql
