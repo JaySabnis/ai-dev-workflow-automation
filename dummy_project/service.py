@@ -3,7 +3,10 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from database import get_user_from_db, get_scores_for_user
+from database import (
+    get_user_from_db, get_scores_for_user,
+    create_user_in_db, add_score_to_db, update_score_in_db,
+)
 from utils import calculate_average
 
 logger = logging.getLogger(__name__)
@@ -26,13 +29,22 @@ def get_user_data(user_id: str, session: Session) -> dict:
         raise
 
     scores: list[int] = get_scores_for_user(session, uid)
-    avg: Optional[float]
-    try:
-        avg = calculate_average(scores)
-    except (ZeroDivisionError, ValueError) as e:
-        logger.warning("Could not compute average score for user %d: %s", uid, e)
-        avg = None
+    avg: Optional[float] = calculate_average(scores)
 
-    result = {**user, "average_score": avg}
+    result = {**user, "scores": scores, "average_score": avg}
     logger.debug("Fetched data for user %d: %s", uid, result)
     return result
+
+
+def create_user(name: str, age: int, session: Session) -> dict:
+    return create_user_in_db(session, name, age)
+
+
+def add_score_for_user(user_id: int, score: int, session: Session) -> dict:
+    get_user_from_db(session, user_id)
+    return add_score_to_db(session, user_id, score)
+
+
+def update_score_for_user(user_id: int, score_id: int, new_score: int, session: Session) -> dict:
+    get_user_from_db(session, user_id)
+    return update_score_in_db(session, score_id, new_score)

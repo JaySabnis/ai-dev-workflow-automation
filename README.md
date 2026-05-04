@@ -86,12 +86,19 @@ This project is built around the **WAT Framework**, a simple but effective appro
 ```
 ai-dev-workflow-automation/
 ├── dummy_project/               # Target Python application
-│   ├── app.py                   # Entry point — session lifecycle + CLI
-│   ├── service.py               # Business logic — orchestrates DB and utils
+│   ├── app/                     # FastAPI REST API layer
+│   │   ├── main.py              # FastAPI entry point — app init + router registration
+│   │   ├── dependencies.py      # DB session dependency injection (get_db)
+│   │   ├── schemas/
+│   │   │   └── user.py          # Pydantic request/response models
+│   │   └── routes/
+│   │       └── users.py         # All 4 API endpoint handlers
+│   ├── app.py                   # CLI entry point — session lifecycle + formatted output
+│   ├── service.py               # Business logic — fetch, create, add score, update score
 │   ├── database.py              # DB query functions (SQLAlchemy session-based)
 │   ├── models.py                # SQLAlchemy ORM models (User, UserScore)
 │   ├── db.py                    # Engine, SessionLocal, Base (reads from .env)
-│   ├── utils.py                 # Pure utility functions
+│   ├── utils.py                 # Pure utility functions (format_data, calculate_average)
 │   ├── seed.py                  # Dev-only script to populate test data
 │   ├── requirements.txt         # Python dependencies
 │   ├── alembic.ini              # Alembic configuration
@@ -101,13 +108,15 @@ ai-dev-workflow-automation/
 │           └── 4d41c850d44c_init_schema.py
 ├── .claude/                     # Claude Code project config
 │   ├── specs/
-│   │   └── 01-database-setup.md # Feature specification
+│   │   ├── 01-database-setup.md # Database layer specification
+│   │   └── 02-fastapi-setup.md  # FastAPI layer specification
 │   └── plans/
-│       └── 01-database-setup.md # Implementation plan
+│       ├── 01-database-setup.md # Database implementation plan
+│       └── 02-fastapi-setup.md  # FastAPI implementation plan
 ├── CLAUDE.md                    # Claude Code guidance
 ├── README.md
 ├── .gitignore
-├── run.sh                       # Convenience launcher (activates venv)
+├── run.sh                       # Convenience launcher (activates venv, runs CLI)
 └── venv/                        # Python virtual environment (not committed)
 ```
 
@@ -143,7 +152,7 @@ cd dummy_project && alembic upgrade head
 python seed.py
 ```
 
-### Run
+### Run — CLI
 
 ```bash
 # From project root
@@ -154,11 +163,33 @@ source venv/bin/activate
 cd dummy_project && python app.py
 ```
 
+### Run — REST API
+
+```bash
+source venv/bin/activate
+cd dummy_project
+uvicorn app.main:app --reload --port 8000
+```
+
+API is live at `http://localhost:8000`
+Interactive Swagger UI at `http://localhost:8000/docs`
+
+### API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/users/{user_id}` | Fetch user + scores + average |
+| `POST` | `/api/v1/users` | Create a new user |
+| `POST` | `/api/v1/users/{user_id}/scores` | Add a score to a user |
+| `PUT` | `/api/v1/users/{user_id}/scores/{score_id}` | Update an existing score |
+
 ---
 
 ## Tech Stack
 
 * Python 3.13
+* FastAPI + Uvicorn (REST API server)
+* Pydantic (request/response validation)
 * SQLAlchemy (ORM)
 * Alembic (migrations)
 * MySQL 8+ via pymysql

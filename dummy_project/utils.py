@@ -2,7 +2,7 @@ def format_data(data: dict) -> str:
     return "".join(f"{key}:{value}\n" for key, value in data.items())
 
 
-def calculate_average(numbers: list[int]) -> int:
+def calculate_average(numbers: list[int]) -> float | None:
     if not numbers:
-        raise ValueError("Cannot calculate average of an empty list")
-    return sum(numbers) // len(numbers)
+        return None
+    return sum(numbers) / len(numbers)
