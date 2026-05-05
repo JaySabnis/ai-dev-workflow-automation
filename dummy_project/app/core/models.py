@@ -1,9 +1,15 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, DateTime, Integer, String, ForeignKey
+from sqlalchemy.sql import func
 
 from app.core.db import Base
 
 
-class User(Base):
+class TimestampMixin:
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+
+class User(TimestampMixin, Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -11,7 +17,7 @@ class User(Base):
     age = Column(Integer, nullable=False)
 
 
-class UserScore(Base):
+class UserScore(TimestampMixin, Base):
     __tablename__ = "user_scores"
 
     id = Column(Integer, primary_key=True, autoincrement=True)

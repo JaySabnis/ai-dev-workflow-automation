@@ -7,7 +7,7 @@ def get_user_from_db(session: Session, user_id: int) -> dict:
     user = session.get(User, user_id)
     if user is None:
         raise KeyError(f"User {user_id} not found")
-    return {"name": user.name, "age": user.age}
+    return {"name": user.name, "age": user.age, "created_at": user.created_at, "updated_at": user.updated_at}
 
 
 def get_scores_for_user(session: Session, user_id: int) -> list[int]:
@@ -20,7 +20,7 @@ def create_user_in_db(session: Session, name: str, age: int) -> dict:
     session.add(user)
     session.commit()
     session.refresh(user)
-    return {"id": user.id, "name": user.name, "age": user.age}
+    return {"id": user.id, "name": user.name, "age": user.age, "created_at": user.created_at, "updated_at": user.updated_at}
 
 
 def add_score_to_db(session: Session, user_id: int, score: int) -> dict:
@@ -28,7 +28,7 @@ def add_score_to_db(session: Session, user_id: int, score: int) -> dict:
     session.add(entry)
     session.commit()
     session.refresh(entry)
-    return {"id": entry.id, "user_id": entry.user_id, "score": entry.score}
+    return {"id": entry.id, "user_id": entry.user_id, "score": entry.score, "created_at": entry.created_at, "updated_at": entry.updated_at}
 
 
 def update_score_in_db(session: Session, score_id: int, new_score: int) -> dict:
@@ -38,4 +38,4 @@ def update_score_in_db(session: Session, score_id: int, new_score: int) -> dict:
     entry.score = new_score
     session.commit()
     session.refresh(entry)
-    return {"id": entry.id, "user_id": entry.user_id, "score": entry.score}
+    return {"id": entry.id, "user_id": entry.user_id, "score": entry.score, "created_at": entry.created_at, "updated_at": entry.updated_at}
