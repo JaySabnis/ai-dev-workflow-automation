@@ -108,6 +108,19 @@ Shared infrastructure: `app/core/db.py` (engine/session) and `app/core/models.py
 - MySQL 8+ via pymysql
 - python-dotenv (env-based config)
 
+## Verified endpoints
+
+All 4 REST endpoints have been tested and confirmed working:
+
+| Method | Path | Status |
+|--------|------|--------|
+| `POST` | `/api/v1/users` | 201 — returns `{id, name, age}` |
+| `GET` | `/api/v1/users/{user_id}` | 200 — returns user + scores + average_score |
+| `POST` | `/api/v1/users/{user_id}/scores` | 201 — returns `{id, user_id, score}` |
+| `PUT` | `/api/v1/users/{user_id}/scores/{score_id}` | 200 — returns updated score |
+
+Error cases: 404 with `{"detail": "..."}` on missing user or score; 500 on unexpected DB errors.
+
 ## WAT Framework workflow
 
 When executing a workflow (refactor, bug-fix, feature-add), follow this sequence:

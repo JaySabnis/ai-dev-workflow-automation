@@ -86,19 +86,22 @@ This project is built around the **WAT Framework**, a simple but effective appro
 ```
 ai-dev-workflow-automation/
 ├── dummy_project/               # Target Python application
-│   ├── app/                     # FastAPI REST API layer
+│   ├── app/                     # All application code lives here
 │   │   ├── main.py              # FastAPI entry point — app init + router registration
 │   │   ├── dependencies.py      # DB session dependency injection (get_db)
-│   │   ├── schemas/
-│   │   │   └── user.py          # Pydantic request/response models
-│   │   └── routes/
-│   │       └── users.py         # All 4 API endpoint handlers
-│   ├── app.py                   # CLI entry point — session lifecycle + formatted output
-│   ├── service.py               # Business logic — fetch, create, add score, update score
-│   ├── database.py              # DB query functions (SQLAlchemy session-based)
-│   ├── models.py                # SQLAlchemy ORM models (User, UserScore)
-│   ├── db.py                    # Engine, SessionLocal, Base (reads from .env)
-│   ├── utils.py                 # Pure utility functions (format_data, calculate_average)
+│   │   ├── utils.py             # Pure helpers: format_data, calculate_average
+│   │   ├── core/
+│   │   │   ├── db.py            # Engine, SessionLocal, Base (reads from .env)
+│   │   │   └── models.py        # SQLAlchemy ORM models: User, UserScore
+│   │   ├── repositories/
+│   │   │   └── users.py         # Raw DB query functions (SQLAlchemy session-based)
+│   │   ├── services/
+│   │   │   └── users.py         # Business logic — fetch, create, add/update scores
+│   │   ├── routes/
+│   │   │   └── users.py         # HTTP handlers — routing + error mapping only
+│   │   └── schemas/
+│   │       └── user.py          # Pydantic request/response models
+│   ├── cli.py                   # CLI entry point — session lifecycle + formatted output
 │   ├── seed.py                  # Dev-only script to populate test data
 │   ├── requirements.txt         # Python dependencies
 │   ├── alembic.ini              # Alembic configuration
@@ -108,11 +111,11 @@ ai-dev-workflow-automation/
 │           └── 4d41c850d44c_init_schema.py
 ├── .claude/                     # Claude Code project config
 │   ├── specs/
-│   │   ├── 01-database-setup.md # Database layer specification
-│   │   └── 02-fastapi-setup.md  # FastAPI layer specification
+│   │   ├── 01-database-setup.md
+│   │   └── 02-fastapi-setup.md
 │   └── plans/
-│       ├── 01-database-setup.md # Database implementation plan
-│       └── 02-fastapi-setup.md  # FastAPI implementation plan
+│       ├── 01-database-setup.md
+│       └── 02-fastapi-setup.md
 ├── CLAUDE.md                    # Claude Code guidance
 ├── README.md
 ├── .gitignore
@@ -155,12 +158,12 @@ python seed.py
 ### Run — CLI
 
 ```bash
-# From project root
+# From project root (convenience launcher)
 ./run.sh
 
 # Or manually
 source venv/bin/activate
-cd dummy_project && python app.py
+cd dummy_project && python cli.py
 ```
 
 ### Run — REST API
@@ -171,7 +174,7 @@ cd dummy_project
 uvicorn app.main:app --reload --port 8000
 ```
 
-API is live at `http://localhost:8000`
+API is live at `http://localhost:8000`  
 Interactive Swagger UI at `http://localhost:8000/docs`
 
 ### API Endpoints
@@ -185,14 +188,39 @@ Interactive Swagger UI at `http://localhost:8000/docs`
 
 ---
 
+## Architecture — Request & Data Flow
+
+### API request flow
+
+```
+HTTP Request
+  → app/main.py                  (FastAPI app)
+  → app/routes/users.py          (routing + session injection + HTTPException mapping)
+  → app/services/users.py        (business logic + validation)
+  → app/repositories/users.py    (DB queries via SQLAlchemy)
+  → MySQL
+  → JSON Response
+```
+
+### CLI data flow
+
+```
+cli.py → app/services/users.py → app/repositories/users.py + app/utils.py
+```
+
+Shared infrastructure: `app/core/db.py` (engine/session) and `app/core/models.py` (ORM models).
+
+---
+
 ## Tech Stack
 
 * Python 3.13
 * FastAPI + Uvicorn (REST API server)
-* Pydantic (request/response validation)
-* SQLAlchemy (ORM)
-* Alembic (migrations)
+* Pydantic v2 (request/response validation)
+* SQLAlchemy (ORM, session-per-request pattern)
+* Alembic (schema migrations)
 * MySQL 8+ via pymysql
+* python-dotenv (env-based config)
 * Claude Code (VS Code AI agent)
 * Structured prompt engineering
 * Git (branching, commits, PR workflow)
@@ -202,6 +230,7 @@ Interactive Swagger UI at `http://localhost:8000/docs`
 ## Key Highlights
 
 * WAT Framework (Workflow–Action–Test) implementation
+* Clean layered architecture: core → repositories → services → routes
 * MySQL-backed database with Alembic-managed schema migrations
 * SQLAlchemy ORM with session-per-request pattern
 * Workflow-driven AI system (not just prompts)
