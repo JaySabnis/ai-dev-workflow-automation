@@ -1,4 +1,6 @@
+from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -19,6 +21,8 @@ class CreatedUserResponse(BaseModel):
     id: int
     name: str
     age: int
+    created_at: datetime
+    updated_at: datetime
 
 
 class UserResponse(BaseModel):
@@ -27,9 +31,13 @@ class UserResponse(BaseModel):
     age: int
     scores: list[int]
     average_score: Optional[float]
+    created_at: datetime
+    updated_at: datetime
 
 
 class ScoreResponse(BaseModel):
     id: int
     user_id: int
     score: int
+    created_at: datetime
+    updated_at: datetime
