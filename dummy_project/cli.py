@@ -1,6 +1,6 @@
-from db import SessionLocal
-from service import get_user_data
-from utils import format_data
+from app.core.db import SessionLocal
+from app.services.users import get_user_data
+from app.utils import format_data
 
 
 def main():

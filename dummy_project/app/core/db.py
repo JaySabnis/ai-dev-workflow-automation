@@ -1,9 +1,11 @@
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
 
 DATABASE_URL = (
     f"mysql+pymysql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}"

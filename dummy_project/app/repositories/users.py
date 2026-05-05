@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
-from models import User, UserScore
+
+from app.core.models import User, UserScore
 
 
 def get_user_from_db(session: Session, user_id: int) -> dict:

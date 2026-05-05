@@ -1,5 +1,5 @@
-from db import SessionLocal
-from models import User, UserScore
+from app.core.db import SessionLocal
+from app.core.models import User, UserScore
 
 
 def seed():

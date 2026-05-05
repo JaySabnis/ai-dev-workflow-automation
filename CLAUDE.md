@@ -28,7 +28,7 @@ cd dummy_project && alembic upgrade head
 python seed.py
 
 # 7a. Run the CLI app (prompts for a user ID)
-python app.py
+python cli.py
 
 # Or use the convenience launcher from project root:
 ./run.sh
@@ -40,34 +40,52 @@ uvicorn app.main:app --reload --port 8000
 
 ## Architecture
 
-The `dummy_project/` is a layered Python app with a MySQL backend, exposed via both a CLI and a REST API.
+The `dummy_project/` is a layered Python app with a MySQL backend, exposed via both a CLI and a REST API. All application code lives inside `app/`; only `cli.py`, `seed.py`, `alembic.ini`, and `migrations/` sit at the root.
 
-### Core layers
+### Project layout
 
-- `app.py` — CLI entry point. Opens a DB session, calls `service.get_user_data()`, prints formatted result via `utils.format_data()`, closes session.
-- `service.py` — Business logic layer. Functions: `get_user_data`, `create_user`, `add_score_for_user`, `update_score_for_user`. No HTTP concepts here.
-- `database.py` — DB query functions using SQLAlchemy sessions. Raises `KeyError` on missing records. Functions: `get_user_from_db`, `get_scores_for_user`, `create_user_in_db`, `add_score_to_db`, `update_score_in_db`.
-- `models.py` — SQLAlchemy ORM models: `User` (`users` table) and `UserScore` (`user_scores` table with FK cascade).
-- `db.py` — Engine, `SessionLocal`, and `Base` setup. Reads credentials from `dummy_project/.env` via `python-dotenv`.
-- `utils.py` — Two pure functions: `format_data(dict) -> str` (CLI only) and `calculate_average(list[int]) -> float | None` (returns `None` on empty).
-- `seed.py` — Dev-only script to populate test data into MySQL.
-- `migrations/` — Alembic migration scripts managed via `alembic.ini`.
+```
+dummy_project/
+├── cli.py               — CLI entry point
+├── seed.py              — dev script to populate test data
+├── alembic.ini
+├── migrations/
+└── app/
+    ├── main.py          — FastAPI app init; registers routers
+    ├── dependencies.py  — get_db() session dependency
+    ├── utils.py         — format_data() and calculate_average()
+    ├── core/
+    │   ├── db.py        — engine, SessionLocal, Base (reads .env)
+    │   └── models.py    — SQLAlchemy ORM models: User, UserScore
+    ├── repositories/
+    │   └── users.py     — raw DB query functions (SQLAlchemy)
+    ├── services/
+    │   └── users.py     — business logic; no HTTP concepts
+    ├── routes/
+    │   └── users.py     — HTTP handlers; routing + error mapping only
+    └── schemas/
+        └── user.py      — Pydantic request/response models
+```
 
-### FastAPI layer (`app/`)
+### Layer responsibilities
 
-- `app/main.py` — FastAPI app init; registers the users router.
-- `app/dependencies.py` — `get_db()` dependency: creates a `SessionLocal`, yields it, closes after response.
+- `cli.py` — Opens a DB session, calls `services.users.get_user_data()`, prints via `utils.format_data()`, closes session.
+- `app/core/db.py` — Engine, `SessionLocal`, and `Base` setup. Reads credentials from `dummy_project/.env` via `python-dotenv`.
+- `app/core/models.py` — SQLAlchemy ORM models: `User` (`users` table) and `UserScore` (`user_scores` table with FK cascade).
+- `app/repositories/users.py` — DB query functions using SQLAlchemy sessions. Raises `KeyError` on missing records.
+- `app/services/users.py` — Business logic: `get_user_data`, `create_user`, `add_score_for_user`, `update_score_for_user`.
+- `app/utils.py` — `format_data(dict) -> str` and `calculate_average(list[int]) -> float | None`.
+- `app/routes/users.py` — The 4 endpoint handlers. No business logic.
 - `app/schemas/user.py` — Pydantic models: `CreateUserRequest`, `AddScoreRequest`, `UpdateScoreRequest`, `UserResponse`, `ScoreResponse`, `CreatedUserResponse`.
-- `app/routes/users.py` — The 4 endpoint handlers. Handles routing, session injection, and HTTP error mapping only — no business logic.
 
 ### Request flow (API)
 
 ```
 HTTP Request
-  → app/main.py          (FastAPI app)
-  → app/routes/users.py  (routing + session injection + error → HTTPException)
-  → service.py           (business logic + validation)
-  → database.py          (DB queries)
+  → app/main.py              (FastAPI app)
+  → app/routes/users.py      (routing + session injection + error → HTTPException)
+  → app/services/users.py    (business logic + validation)
+  → app/repositories/users.py (DB queries)
   → MySQL
   → JSON Response
 ```
@@ -75,10 +93,10 @@ HTTP Request
 ### Data flow (CLI)
 
 ```
-app.py → service.py → database.py + utils.py
+cli.py → app/services/users.py → app/repositories/users.py + app/utils.py
 ```
 
-Shared infrastructure: `db.py` (engine/session) and `models.py` (ORM models).
+Shared infrastructure: `app/core/db.py` (engine/session) and `app/core/models.py` (ORM models).
 
 ## Tech stack
 
@@ -89,6 +107,19 @@ Shared infrastructure: `db.py` (engine/session) and `models.py` (ORM models).
 - Alembic (schema migrations)
 - MySQL 8+ via pymysql
 - python-dotenv (env-based config)
+
+## Verified endpoints
+
+All 4 REST endpoints have been tested and confirmed working:
+
+| Method | Path | Status |
+|--------|------|--------|
+| `POST` | `/api/v1/users` | 201 — returns `{id, name, age}` |
+| `GET` | `/api/v1/users/{user_id}` | 200 — returns user + scores + average_score |
+| `POST` | `/api/v1/users/{user_id}/scores` | 201 — returns `{id, user_id, score}` |
+| `PUT` | `/api/v1/users/{user_id}/scores/{score_id}` | 200 — returns updated score |
+
+Error cases: 404 with `{"detail": "..."}` on missing user or score; 500 on unexpected DB errors.
 
 ## WAT Framework workflow
 
