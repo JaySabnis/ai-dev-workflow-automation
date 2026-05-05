@@ -3,11 +3,11 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from database import (
+from app.repositories.users import (
     get_user_from_db, get_scores_for_user,
     create_user_in_db, add_score_to_db, update_score_in_db,
 )
-from utils import calculate_average
+from app.utils import calculate_average
 
 logger = logging.getLogger(__name__)
 

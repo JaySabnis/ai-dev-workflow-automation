@@ -6,7 +6,7 @@ from app.schemas.user import (
     CreateUserRequest, AddScoreRequest, UpdateScoreRequest,
     CreatedUserResponse, UserResponse, ScoreResponse,
 )
-import service
+from app.services import users as service
 
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
 
