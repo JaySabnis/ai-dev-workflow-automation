@@ -85,7 +85,7 @@ This project is built around the **WAT Framework**, a simple but effective appro
 
 ```
 ai-dev-workflow-automation/
-├── dummy_project/               # Target Python application
+├── user_scorecard/               # Target Python application
 │   ├── app/                     # All application code lives here
 │   │   ├── main.py              # FastAPI entry point — app init + router registration
 │   │   ├── dependencies.py      # DB session dependency injection (get_db)
@@ -139,17 +139,17 @@ ai-dev-workflow-automation/
 source venv/bin/activate
 
 # 2. Install dependencies
-pip install -r dummy_project/requirements.txt
+pip install -r user_scorecard/requirements.txt
 
 # 3. Configure database credentials
-#    Edit dummy_project/.env with your MySQL details:
+#    Edit user_scorecard/.env with your MySQL details:
 #    DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
 
 # 4. Create the database
 mysql -u root -p -e "CREATE DATABASE user_db;"
 
 # 5. Apply migrations
-cd dummy_project && alembic upgrade head
+cd user_scorecard && alembic upgrade head
 
 # 6. Seed test data
 python seed.py
@@ -163,14 +163,14 @@ python seed.py
 
 # Or manually
 source venv/bin/activate
-cd dummy_project && python cli.py
+cd user_scorecard && python cli.py
 ```
 
 ### Run — REST API
 
 ```bash
 source venv/bin/activate
-cd dummy_project
+cd user_scorecard
 uvicorn app.main:app --reload --port 8000
 ```
 
