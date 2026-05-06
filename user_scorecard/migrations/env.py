@@ -7,7 +7,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# allow imports from dummy_project/
+# allow imports from user_scorecard/
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from dotenv import load_dotenv

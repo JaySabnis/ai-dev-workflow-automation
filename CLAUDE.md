@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Purpose
 
-This repo demonstrates the **WAT Framework** (Workflow–Action–Test): a structured approach to AI-driven development where Claude acts as an execution engine rather than a simple assistant. The `dummy_project/` is a sample Python codebase backed by MySQL, used as the target for automated analysis, refactoring, and improvement workflows.
+This repo demonstrates the **WAT Framework** (Workflow–Action–Test): a structured approach to AI-driven development where Claude acts as an execution engine rather than a simple assistant. The `user_scorecard/` is a sample Python codebase backed by MySQL, used as the target for automated analysis, refactoring, and improvement workflows.
 
 ## Running the project
 
@@ -13,16 +13,16 @@ This repo demonstrates the **WAT Framework** (Workflow–Action–Test): a struc
 source venv/bin/activate
 
 # 2. Install dependencies
-pip install -r dummy_project/requirements.txt
+pip install -r user_scorecard/requirements.txt
 
-# 3. Configure database credentials in dummy_project/.env:
+# 3. Configure database credentials in user_scorecard/.env:
 #    DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
 
 # 4. Create the database
 mysql -u root -p -e "CREATE DATABASE user_db;"
 
 # 5. Apply migrations
-cd dummy_project && alembic upgrade head
+cd user_scorecard && alembic upgrade head
 
 # 6. Seed test data
 python seed.py
@@ -40,12 +40,12 @@ uvicorn app.main:app --reload --port 8000
 
 ## Architecture
 
-The `dummy_project/` is a layered Python app with a MySQL backend, exposed via both a CLI and a REST API. All application code lives inside `app/`; only `cli.py`, `seed.py`, `alembic.ini`, and `migrations/` sit at the root.
+The `user_scorecard/` is a layered Python app with a MySQL backend, exposed via both a CLI and a REST API. All application code lives inside `app/`; only `cli.py`, `seed.py`, `alembic.ini`, and `migrations/` sit at the root.
 
 ### Project layout
 
 ```
-dummy_project/
+user_scorecard/
 ├── cli.py               — CLI entry point
 ├── seed.py              — dev script to populate test data
 ├── alembic.ini
@@ -70,7 +70,7 @@ dummy_project/
 ### Layer responsibilities
 
 - `cli.py` — Opens a DB session, calls `services.users.get_user_data()`, prints via `utils.format_data()`, closes session.
-- `app/core/db.py` — Engine, `SessionLocal`, and `Base` setup. Reads credentials from `dummy_project/.env` via `python-dotenv`.
+- `app/core/db.py` — Engine, `SessionLocal`, and `Base` setup. Reads credentials from `user_scorecard/.env` via `python-dotenv`.
 - `app/core/models.py` — SQLAlchemy ORM models: `User` (`users` table) and `UserScore` (`user_scores` table with FK cascade).
 - `app/repositories/users.py` — DB query functions using SQLAlchemy sessions. Raises `KeyError` on missing records.
 - `app/services/users.py` — Business logic: `get_user_data`, `create_user`, `add_score_for_user`, `update_score_for_user`.
@@ -126,7 +126,7 @@ Error cases: 404 with `{"detail": "..."}` on missing user or score; 500 on unexp
 When executing a workflow (refactor, bug-fix, feature-add), follow this sequence:
 
 1. **Workflow** — Read the relevant `.ai/workflows/*.md` file to understand execution steps, then `.ai/rules.md` for constraints, and `.ai/context.md` for project context.
-2. **Action** — Modify files in `dummy_project/` one at a time.
+2. **Action** — Modify files in `user_scorecard/` one at a time.
 3. **Test** — Verify syntax correctness and cross-file consistency after each change.
 4. **Git** — Commit on branch `ai-refactor`, push, and open a PR summarizing files modified, issues fixed, and improvements made.
 
